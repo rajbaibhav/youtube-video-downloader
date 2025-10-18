@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Replaced the previous background with a new vibrant, abstract gradient */
+            background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Keeps the background stationary on scroll */
+        }
+        .form-container {
+            background: rgba(42, 53, 71, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); /* For Safari browser compatibility */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .toggle-btn.active {
+            background-color: #2dd4bf;
+            color: #ffffff;
+            font-weight: 600;
+        }
+         .toggle-btn {
+            transition: all 0.2s ease-in-out;
+         }
+        .download-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .loader {
+            border-top-color: #ffffff;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="form-container w-full max-w-lg p-8 rounded-2xl space-y-6">
+        
+        <!-- Header -->
+        <div class="text-center space-y-3">
+            <div class="inline-block p-3 bg-gray-900/50 border border-gray-700 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21.582,6.186C21.325,5.424,20.76,4.86,20.002,4.605C18.25,4,12,4,12,4S5.75,4,4.002,4.605C3.244,4.86,2.679,5.424,2.422,6.186C1.818,7.932,1.818,12,1.818,12s0,4.068,0.604,5.814c0.257,0.762,0.822,1.326,1.579,1.581C5.75,20,12,20,12,20s6.25,0,7.998-0.605c0.758-0.255,1.322-0.819,1.579-1.581C22.182,16.068,22.182,12,22.182,12S22.182,7.932,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white">YouTube Downloader</h1>
+            <p class="text-gray-300 text-sm">✨ Fast, secure, premium quality ✨</p>
+        </div>
+
+        <!-- URL Input -->
+        <div class="relative">
+            <input id="urlInput" type="text" placeholder="Paste YouTube URL here..." class="w-full bg-gray-900/50 text-white placeholder-gray-500 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <button id="pasteButton" class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white">
+                <i class="fa-regular fa-clipboard"></i>
+            </button>
+        </div>
+
+        <!-- Toggle Buttons -->
+        <div class="flex bg-gray-900/50 border border-gray-700 rounded-lg p-1">
+            <button id="videoBtn" class="toggle-btn active w-1/2 py-2 rounded-md">
+                <i class="fas fa-video mr-2"></i>Video
+            </button>
+            <button id="audioBtn" class="toggle-btn w-1/2 py-2 rounded-md text-gray-400">
+                <i class="fas fa-music mr-2"></i>Audio
+            </button>
+        </div>
+
+        <!-- Quality Dropdown -->
+        <div id="qualitySection" class="space-y-2">
+            <label for="qualitySelect" class="text-sm font-medium text-gray-300">Select Quality</label>
+            <select id="qualitySelect" class="w-full bg-gray-900/50 text-white border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="1080p">1080p</option>
+                <option value="720p" selected>720p</option>
+                <option value="480p">480p</option>
+                <option value="360p">360p</option>
+            </select>
+        </div>
+
+        <!-- Download Button -->
+        <button id="downloadBtn" class="download-btn w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center">
+            <span id="btn-text">
+                <i class="fas fa-download mr-2"></i>Download Video
+            </span>
+            <div id="btn-loader" class="loader h-5 w-5 rounded-full border-2 border-t-transparent hidden"></div>
+        </button>
+
+        <!-- Footer Text -->
+        <p class="text-s text-center bg-gradient-to-br from-pink-600 via-orange-350 to-indigo-600 bg-clip-text text-transparent font-bold">
+  Powered by Vr Media Ltd
+</p>
+
+
+        
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const urlInput = document.getElementById('urlInput');
+        const pasteButton = document.getElementById('pasteButton');
+        const videoBtn = document.getElementById('videoBtn');
+        const audioBtn = document.getElementById('audioBtn');
+        const qualitySection = document.getElementById('qualitySection');
+        const qualitySelect = document.getElementById('qualitySelect');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+
+        // --- App State ---
+        let downloadType = 'video'; // 'video' or 'audio'
+        // This is the CRITICAL change for deployment. An empty string makes the
+        // browser use the same domain the HTML page was loaded from.
+        const API_BASE_URL = '';
+
+        // --- Event Listeners ---
+        pasteButton.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                urlInput.value = text;
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                alert('Could not paste from clipboard. Please paste manually.');
+            }
+        });
+
+        videoBtn.addEventListener('click', () => {
+            if (downloadType === 'audio') {
+                downloadType = 'video';
+                updateUI();
+            }
+        });
+
+        audioBtn.addEventListener('click', () => {
+            if (downloadType === 'video') {
+                downloadType = 'audio';
+                updateUI();
+            }
+        });
+
+        downloadBtn.addEventListener('click', handleDownload);
+
+        // --- Functions ---
+        function updateUI() {
+            if (downloadType === 'video') {
+                // Set Video as active
+                videoBtn.classList.add('active');
+                audioBtn.classList.remove('active');
+                audioBtn.classList.add('text-gray-400');
+                
+                // Show quality section and update button text
+                qualitySection.style.display = 'block';
+                btnText.innerHTML = '<i class="fas fa-download mr-2"></i>Download Video';
+            } else {
+                // Set Audio as active
+                audioBtn.classList.add('active');
+                videoBtn.classList.remove('active');
+                audioBtn.classList.remove('text-gray-400');
+
+                // Hide quality section and update button text
+                qualitySection.style.display = 'none';
+                btnText.innerHTML = '<i class="fas fa-download mr-2"></i>Download Audio';
+            }
+        }
+
+        function handleDownload() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                alert('Please paste a YouTube URL first.');
+                return;
+            }
+            
+            setLoading(true);
+
+            // Construct the final URL for the API call
+            let finalUrl = `${API_BASE_URL}/download/${downloadType}?url=${encodeURIComponent(url)}`;
+            if (downloadType === 'video') {
+                finalUrl += `&quality=${qualitySelect.value}`;
+            }
+
+            console.log(`Requesting download from: ${finalUrl}`);
+            
+            // For file downloads from a GET request, the most reliable method
+            // is to navigate the browser to the URL. The browser will handle
+            // the 'Content-Disposition' header and trigger a download prompt.
+            // Using fetch() is more complex as it requires handling the blob in JS.
+            window.location.href = finalUrl;
+
+            // Since we can't get a response back from window.location.href,
+            // we'll just reset the button after a delay.
+            setTimeout(() => {
+                setLoading(false);
+            }, 5000); // Reset button after 5 seconds
+        }
+        
+        function setLoading(isLoading) {
+            if (isLoading) {
+                downloadBtn.disabled = true;
+                downloadBtn.classList.add('opacity-70');
+                btnText.classList.add('hidden');
+                btnLoader.classList.remove('hidden');
+            } else {
+                downloadBtn.disabled = false;
+                downloadBtn.classList.remove('opacity-70');
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+            }
+        }
+
+        // --- Initial UI Setup ---
+        updateUI();
+
+    </script>
+</body>
+</html>
+
+
+
+
